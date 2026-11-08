@@ -8,14 +8,6 @@ DeepAI (deepai.org) 免费聊天通道的 OpenAI 兼容反代，部署在 Cloudf
 
 > 纯逆向研究产物，仅供学习交流。请勿用于重负载场景，尊重上游服务。
 
-## 免责声明
-
-- 本项目与 DeepAI 无任何关联，仅供技术研究和学习使用
-- 使用本项目产生的任何后果由使用者自行承担，包括但不限于账号/IP 被上游封禁、服务不可用等
-- 请遵守上游服务的使用条款，勿将其用于商业用途或大规模滥用
-- 模型输出内容不代表本项目作者立场，请自行甄别
-- 本项目按"现状"提供，不提供任何明示或暗示的保证
-
 ## 特性
 
 - OpenAI 兼容 `/v1/chat/completions`（流式 SSE / 非流式）和 `/v1/models`
@@ -117,6 +109,19 @@ SALT = "hackers_become_a_little_stinkier_every_time_they_hack"
 
 排查方法沉淀：静态分析挖不到发送逻辑时，直接用浏览器自动化劫持 `window.fetch`，dump `FormData.entries()`，一步定位真实请求。
 
+## 手动部署 Workers
+
+不想用按钮/CLI 的话，网页控制台一样能部署：
+
+1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → **Create application** → **Create Worker**，随便起个名（如 `deepai2api`），先 Deploy 一个空 Worker
+2. 点 **Edit code**，把本仓库的 [`worker.js`](worker.js) 内容整段粘贴进去替换默认代码，**Deploy**
+3. （可选）设置鉴权：Worker 页面 → **Settings** → **Variables and Secrets** → **Add**：
+   - Type 选 `Secret`，Name 填 `ACCESS_KEY`，Value 自己生成一个随机串
+   - 设置后所有请求必须带 `Authorization: Bearer <你的ACCESS_KEY>`
+4. 验证：访问 `https://<你的worker名>.<你的子域>.workers.dev/v1/models`，返回模型列表 JSON 即成功
+
+> 前面“快速开始”里的 CLI 方式（`npx wrangler deploy`）与此等价，二选一即可。
+
 ## 已知限制
 
 - 上游按 IP 风控，短时高频会触发 500 软限流（没有账号体系，它只能看出口 IP）
@@ -127,6 +132,14 @@ SALT = "hackers_become_a_little_stinkier_every_time_they_hack"
 ## 致谢
 
 - 逆向过程中参考了 DeepAI 前端源码与 [gpt4free](https://github.com/xtekky/gpt4free) 社区的思路
+
+## 免责声明
+
+- 本项目与 DeepAI 无任何关联，仅供技术研究和学习使用
+- 使用本项目产生的任何后果由使用者自行承担，包括但不限于账号/IP 被上游封禁、服务不可用等
+- 请遵守上游服务的使用条款，勿将其用于商业用途或大规模滥用
+- 模型输出内容不代表本项目作者立场，请自行甄别
+- 本项目按"现状"提供，不提供任何明示或暗示的保证
 
 ## License
 
