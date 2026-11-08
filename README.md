@@ -45,6 +45,19 @@ curl -N $BASE/v1/chat/completions \
 
 上下文是多轮的：把历史放在 `messages` 里传上来即可（上游无状态，每次全量重放）。
 
+## 手动部署 Workers
+
+不想用按钮/CLI 的话，网页控制台一样能部署：
+
+1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → **Create application** → **Create Worker**，随便起个名（如 `deepai2api`），先 Deploy 一个空 Worker
+2. 点 **Edit code**，把本仓库的 [`worker.js`](worker.js) 内容整段粘贴进去替换默认代码，**Deploy**
+3. （可选）设置鉴权：Worker 页面 → **Settings** → **Variables and Secrets** → **Add**：
+   - Type 选 `Secret`，Name 填 `ACCESS_KEY`，Value 自己生成一个随机串
+   - 设置后所有请求必须带 `Authorization: Bearer <你的ACCESS_KEY>`
+4. 验证：访问 `https://<你的worker名>.<你的子域>.workers.dev/v1/models`，返回模型列表 JSON 即成功
+
+> 前面“快速开始”里的 CLI 方式（`npx wrangler deploy`）与此等价，二选一即可。
+
 ## 免费模型
 
 以下模型全部匿名实测通过（每个都让模型自报名字验证，不是看 UI 标签）：
@@ -108,19 +121,6 @@ SALT = "hackers_become_a_little_stinkier_every_time_they_hack"
 思考模式：加 `thinking_support=1` 后请求变成两段式 —— 先返回 `{task_id}`，再轮询 `GET /check_chat_task_status?type=thinking-task&task_id=...`。本项目暂未封装。
 
 排查方法沉淀：静态分析挖不到发送逻辑时，直接用浏览器自动化劫持 `window.fetch`，dump `FormData.entries()`，一步定位真实请求。
-
-## 手动部署 Workers
-
-不想用按钮/CLI 的话，网页控制台一样能部署：
-
-1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → **Create application** → **Create Worker**，随便起个名（如 `deepai2api`），先 Deploy 一个空 Worker
-2. 点 **Edit code**，把本仓库的 [`worker.js`](worker.js) 内容整段粘贴进去替换默认代码，**Deploy**
-3. （可选）设置鉴权：Worker 页面 → **Settings** → **Variables and Secrets** → **Add**：
-   - Type 选 `Secret`，Name 填 `ACCESS_KEY`，Value 自己生成一个随机串
-   - 设置后所有请求必须带 `Authorization: Bearer <你的ACCESS_KEY>`
-4. 验证：访问 `https://<你的worker名>.<你的子域>.workers.dev/v1/models`，返回模型列表 JSON 即成功
-
-> 前面“快速开始”里的 CLI 方式（`npx wrangler deploy`）与此等价，二选一即可。
 
 ## 已知限制
 
